@@ -78,7 +78,9 @@ function JsonExtractor(Json, IndexId) {
                     }
                 })
             rootID = IndexId
-            Json[key].forEach(element => {
+            const elements = flattenArray(Json[key])
+            elements.forEach(element => {
+                console.log(element, 's')
                 edges.push({ id: `node-${rootID}-node-${IndexId + 1}`, source: `node-${rootID}`, target: `node-${IndexId + 1}` });
                 nodes.push(
                     {
@@ -97,4 +99,18 @@ function JsonExtractor(Json, IndexId) {
 
     }
     return { nodes, edges }
+}
+
+function flattenArray(arr) {
+    let flattenedArray = [];
+
+    arr.forEach(item => {
+        if (Array.isArray(item)) {
+            flattenedArray.push(...flattenArray(item));
+        } else {
+            flattenedArray.push(item);
+        }
+    });
+
+    return flattenedArray;
 }
