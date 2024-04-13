@@ -3,18 +3,14 @@ import ReactFlow, { Controls, Background } from 'reactflow';
 import 'reactflow/dist/style.css';
 import TextUpdaterNode from '@/app/components/TextUpdaterNode'
 import { useMemo } from 'react';
+import useNodesAndEdges from '../store/useNodesAndEdges'; // Import your custom hook if necessary
 
-const edges = [{ id: '1-2', source: '1', target: '2', type: 'step' }];
-const nodes = [
-    {
-        id: 'node-2', type: 'textUpdater', position: { x: 0, y: 100 }, data: {
-            value: "member"
-        }
-    },
-];
+
+// const edges = [{ id: '1-2', source: '1', target: '2', type: 'step' }];
 
 const nodeTypes = { textUpdater: TextUpdaterNode };
 export default function Canvas() {
+    const { addNode, nodes, resetNodes, edges } = useNodesAndEdges()
 
     return (
         <div style={{ height: '100vh', width: '70%' }}>

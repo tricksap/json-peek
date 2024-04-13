@@ -9,13 +9,16 @@ import useNodesAndEdges from '../store/useNodesAndEdges'; // Import your custom 
  * task: add to the store make it async wait for it to upload all of the nodes and edgees before going to next step of the code
  */
 export default function TextEditor() {
-    const { addNode, nodes } = useNodesAndEdges()
+    const { addNode, nodes, resetNodes, resetEdges, addEdge } = useNodesAndEdges()
     const [first, setfirst] = useState("second")
     const editorRef = useRef(null);
     function handleEditorChange(value) {
         const result = NodeGenerator(value)
-        result?.nodes.map(it => { addNode(it) })
-        console.log(nodes, 'sssndie')
+        resetNodes()
+        resetEdges()
+        // result?.nodes.map(node => { addNode(node) })
+        // result?.edges.map(edge => { addEdge(edge) })
+        console.log(result, 'final result')
 
     }
     return (

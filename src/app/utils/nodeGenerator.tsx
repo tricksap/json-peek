@@ -4,49 +4,23 @@ import { useState } from "react";
 export default function nodeGenerator(text: string) {
     try {
         const validJSON = JSON.parse(text)
-        let id = 0
-        let positionX = 0
-        const xIncrement = 200
-        let nodes = []
-        let edges = []
 
-        nodes.push(
-            {
-                id: `node-${id += 1}`, type: 'textUpdater', position: { x: positionX, y: 200 }, data: {
-                    value: getNonContainerKeys(validJSON)
+        const JSONKeys = Object.keys(validJSON)
 
-                }
-            })
-        const arrays = getArrayKeys(validJSON)
-        for (const key of Object.keys(arrays)) {
-            edges.push({ id: `node-${id}-node-${id + 1}`, source: `node-${id}`, target: `node-${id + 1}` });
-            nodes.push(
-                {
-                    id: `node-${id += 1}`, type: 'textUpdater', position: { x: positionX += 200, y: 200 }, data: {
-                        value: key
 
-                    }
-                })
-            edges.push({ id: `node-${id}-node-${id + 1}`, source: `node-${id}`, target: `node-${id + 1}` });
 
-            nodes.push(
-                {
-                    id: `node-${id += 1}`, type: 'textUpdater', position: { x: positionX += 200, y: 200 }, data: {
-                        value: arrays[key]
-
-                    }
-                })
-        }
-        return { nodes, edges }
+        const result = JsonExtractor(validJSON, 0)
+        console.log(result, "rere")
+        return result
     } catch (error) {
         console.log(error)
     }
 }
 
-function getArrayKeys(jsonObject) {
+function getArrayKeys(jsonObject: any) {
     let arrayKeysObj = {};
 
-    function traverse(obj) {
+    function traverse(obj: { [x: string]: any; hasOwnProperty: (arg0: string) => any; }) {
         for (let key in obj) {
             if (obj.hasOwnProperty(key)) {
                 if (Array.isArray(obj[key])) {
@@ -60,10 +34,10 @@ function getArrayKeys(jsonObject) {
     return arrayKeysObj;
 }
 
-function getNonContainerKeys(jsonObject) {
+function getNonContainerKeys(jsonObject: any) {
     let nonContainerKeysObj = {};
 
-    function traverse(obj) {
+    function traverse(obj: { [x: string]: any; hasOwnProperty: (arg0: string) => any; }) {
         for (let key in obj) {
             if (obj.hasOwnProperty(key)) {
                 if (!Array.isArray(obj[key])) {
@@ -75,4 +49,52 @@ function getNonContainerKeys(jsonObject) {
 
     traverse(jsonObject);
     return nonContainerKeysObj;
+}
+
+function JsonExtractor(Json, IndexId) {
+    let positionX = 0
+    const xIncrement = 200
+    let nodes = []
+    let edges = []
+    let rootID
+
+    nodes.push(
+        {
+            id: `node-${IndexId += 1}`, type: 'textUpdater', position: { x: positionX, y: 200 }, data: {
+                value: getNonContainerKeys(Json)
+
+            }
+        })
+
+
+    for (let key in Json) {
+        if (Array.isArray(Json[key])) {
+            edges.push({ id: `node-${IndexId}-node-${IndexId + 1}`, source: `node-${IndexId}`, target: `node-${IndexId + 1}` });
+            nodes.push(
+                {
+                    id: `node-${IndexId += 1}`, type: 'textUpdater', position: { x: positionX += xIncrement, y: 200 }, data: {
+                        value: key
+
+                    }
+                })
+            rootID = IndexId
+            Json[key].forEach(element => {
+                edges.push({ id: `node-${rootID}-node-${IndexId + 1}`, source: `node-${rootID}`, target: `node-${IndexId + 1}` });
+                nodes.push(
+                    {
+                        id: `node-${IndexId += 1}`, type: 'textUpdater', position: { x: positionX += xIncrement, y: 200 }, data: {
+                            value: element
+
+                        }
+                    })
+            });
+        }
+        // TODO: start processing recursion
+        if (typeof Json[key] === 'object' && !Array.isArray(Json[key])) {
+            let rere = JsonExtractor(Json[key], IndexId)
+            console.log(rere, 'recur')
+        }
+
+    }
+    return { nodes, edges }
 }
