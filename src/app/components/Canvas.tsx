@@ -1,16 +1,22 @@
 'use client'
-import ReactFlow, { Controls, Background } from 'reactflow';
+import Dagre from '@dagrejs/dagre';
+import ReactFlow, {
+    Controls,
+    Background,
+    applyNodeChanges,
+    applyEdgeChanges,
+    useNodesState,
+    useEdgesState,
+} from 'reactflow';
 import 'reactflow/dist/style.css';
-import TextUpdaterNode from '@/app/components/TextUpdaterNode'
-import { useMemo } from 'react';
+import CustomNode from '@/app/components/CustomNode'
 import useNodesAndEdges from '../store/useNodesAndEdges'; // Import your custom hook if necessary
+const g = new Dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
 
 
-// const edges = [{ id: '1-2', source: '1', target: '2', type: 'step' }];
-
-const nodeTypes = { textUpdater: TextUpdaterNode };
+const nodeTypes = { customNode: CustomNode };
 export default function Canvas() {
-    const { addNode, nodes, resetNodes, edges } = useNodesAndEdges()
+    const { nodes, edges } = useNodesAndEdges()
 
     return (
         <div style={{ height: '100vh', width: '70%' }}>
