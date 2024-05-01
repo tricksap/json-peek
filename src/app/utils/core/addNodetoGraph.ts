@@ -1,6 +1,6 @@
 import { Graph } from "../JsonParser"
 
-export default function addNodetoGraph(graph: Graph,data: {}){
+export default function addNodetoGraph(graph: Graph,data: {},type:string = ''){
     const positionX = (graph?.nodes?.length &&  graph.nodes[graph.nodes.length - 1]?.position?.x) || 0
     const xIncrement =200
     const newNode = 
@@ -9,7 +9,7 @@ export default function addNodetoGraph(graph: Graph,data: {}){
             type: 'customNode', 
             position: { x:positionX + xIncrement, y: 200 }, 
             data: {
-                type:"type",
+                type:type,
                 value: data,
             }
         }

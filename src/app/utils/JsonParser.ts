@@ -46,7 +46,7 @@ function JsonExtractor(Json: IJSON, IndexId: number, xCoordinate: number) {
     for (let key in Json) {
         // get all value that is inside an array 
         if (Array.isArray(Json[key])) {
-            let parentID = addNodetoGraph(graph, key)
+            let parentID = addNodetoGraph(graph, key,'array')
             addEdgestoGraph(graph,rootID,parentID)
             const elements = flattenArray(Json[key])
             elements.forEach(element => {
@@ -55,8 +55,7 @@ function JsonExtractor(Json: IJSON, IndexId: number, xCoordinate: number) {
             });
         }
         if (typeof Json[key] === 'object' && !Array.isArray(Json[key])) {
-            console.log(Json[key])
-            let parentID = addNodetoGraph(graph, key)
+            let parentID = addNodetoGraph(graph, key,'object')
             addEdgestoGraph(graph,rootID,parentID)
             const result = nestedObject(graph,Json[key], parentID)
         }
@@ -70,20 +69,22 @@ function nestedObject(graph:Graph,Json:IJSON, parentID:string) {
     let rootID: any
     rootID = addNodetoGraph(graph, getNonContainerKeys(Json))
     addEdgestoGraph(graph,parentID,rootID)
+    console.log(rootID)
+
     for (let key in Json) {
         if (Array.isArray(Json[key])) {
-            let newNodeId = addNodetoGraph(graph, key)
-            addEdgestoGraph(graph,parentID,newNodeId)
+            let newNodeId = addNodetoGraph(graph, key,'array')
+            addEdgestoGraph(graph,rootID,newNodeId)
             const elements = flattenArray(Json[key])
             elements.forEach(element => {
-                const result = nestedObject(graph,element, parentID)
+                const result = nestedObject(graph,element, newNodeId)
                
             });
         }
         if (typeof Json[key] === 'object' && !Array.isArray(Json[key])) {
-            console.log(Json[key],"inobje")
-            let newNodeId = addNodetoGraph(graph, key)
-            addEdgestoGraph(graph,parentID,newNodeId)
+            let newNodeId = addNodetoGraph(graph, key,'object')
+            //sometinh missing here need to investigate
+            addEdgestoGraph(graph,rootID,newNodeId)
             const result = nestedObject(graph,Json[key], newNodeId)
         }
     }
@@ -92,6 +93,9 @@ function nestedObject(graph:Graph,Json:IJSON, parentID:string) {
 
 
 function getNonContainerKeys(jsonObject: any) {
+    if (typeof jsonObject !== 'object' && !Array.isArray(jsonObject)) {
+        return jsonObject
+    }
     let nonContainerKeysObj = {};
 
     function traverse(obj: { [x: string]: any; hasOwnProperty: (arg0: string) => any; }) {
