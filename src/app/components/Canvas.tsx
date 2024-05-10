@@ -23,17 +23,15 @@ const g = new Dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
 export default function Canvas() {
     const { nodes, edges } = useNodesAndEdges()
     const getLayoutedElements = (nodes, edges, options) => {
-        g.setGraph({ rankdir: options.direction });
-
+        g.setGraph({ rankdir: options.direction, align: 'UR', nodesep: 150, edgesep: 150, ranksep: 300 });
         edges.forEach((edge) => g.setEdge(edge.source, edge.target));
         nodes.forEach((node) => g.setNode(node.id, node));
 
         Dagre.layout(g);
-
         return {
             nodes: nodes.map((node) => {
                 const { x, y } = g.node(node.id);
-
+                console.log(x, y, 'adadasaXY')
                 return { ...node, position: { x, y } };
             }),
             edges,
@@ -45,8 +43,10 @@ export default function Canvas() {
         const [nodes, setNodes, onNodesChange] = useNodesState(InitialNodes);
         const [edges, setEdges, onEdgesChange] = useEdgesState(InitialEdges);
 
+        console.log(nodes, 'didid')
         const onLayout = useCallback(
             (direction) => {
+
                 const layouted = getLayoutedElements(nodes, edges, { direction });
 
                 setNodes([...layouted.nodes]);
@@ -89,10 +89,6 @@ export default function Canvas() {
                 <LayoutFlow InitialNodes={nodes} InitialEdges={edges} />
 
             </ReactFlowProvider>
-            {/* <ReactFlow nodes={nodes} edges={edges} nodeTypes={nodeTypes}>
-                <Background />
-                <Controls />
-            </ReactFlow> */}
         </div>
     );
 }

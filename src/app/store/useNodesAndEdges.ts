@@ -36,6 +36,8 @@ const useNodesAndEdges = create<IuseNodesAndEdges>((set,get) => ({
       edges: applyEdgeChanges(changes, get().edges),
     });
   },
+
+  // create store for react flow states
   resetNodes:()=>set(()=>({nodes:[]})),
   resetEdges:()=>set(()=>({edges:[]}))
 

@@ -7,7 +7,7 @@ import  {
     Edge,} from 'reactflow';
 
 interface IJSON {
-    [key: string]: string | boolean | number | object | Array<any>;
+    [key: string]: (string | boolean | number | object)[] ;
 }
 
 export type Graph = {
@@ -65,12 +65,12 @@ function JsonExtractor(Json: IJSON, IndexId: number, xCoordinate: number) {
     return graph
 }
 
-function nestedObject(graph:Graph,Json:IJSON, parentID:string) {
+function nestedObject(graph:Graph,Json:IJSON | string | boolean | number | object, parentID:string) {
+
     let rootID: any
     rootID = addNodetoGraph(graph, getNonContainerKeys(Json))
     addEdgestoGraph(graph,parentID,rootID)
-    console.log(rootID)
-
+    if (Array.isArray(Json) || typeof Json === 'object'){
     for (let key in Json) {
         if (Array.isArray(Json[key])) {
             let newNodeId = addNodetoGraph(graph, key,'array')
@@ -78,16 +78,26 @@ function nestedObject(graph:Graph,Json:IJSON, parentID:string) {
             const elements = flattenArray(Json[key])
             elements.forEach(element => {
                 const result = nestedObject(graph,element, newNodeId)
-               
+                
             });
         }
         if (typeof Json[key] === 'object' && !Array.isArray(Json[key])) {
+            const parentNode =  graph.nodes.find((node) =>(node.id === parentID))
             let newNodeId = addNodetoGraph(graph, key,'object')
-            //sometinh missing here need to investigate
-            addEdgestoGraph(graph,rootID,newNodeId)
+            
+            //different kind of code when the parent is object or array
+            if (parentNode?.data.type === 'object'){
+                addEdgestoGraph(graph,parentID,newNodeId)
+            }
+            if (parentNode?.data.type === 'array'){
+                addEdgestoGraph(graph,rootID,newNodeId)
+                
+            }
             const result = nestedObject(graph,Json[key], newNodeId)
         }
     }
+}
+
 }
 
 
@@ -112,8 +122,8 @@ function getNonContainerKeys(jsonObject: any) {
     return nonContainerKeysObj;
 }
 
-function flattenArray(arr:any[]) {
-    let flattenedArray:[] = [];
+function flattenArray(arr:(string | boolean | number | object)[]): (string | boolean | number | object)[]  {
+    let flattenedArray:(string | boolean | number | object )[] = [];
 
     arr.forEach(item => {
         if (Array.isArray(item)) {

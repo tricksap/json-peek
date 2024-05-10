@@ -10,11 +10,11 @@ export default function CustomNode({ data }: { data: IData }) {
         <>
             <div className='max-w-md break-words'>
                 <Handle type="target" position={Position.Left} id='left' />
-                <div className='border-2 p-2 rounded bg-cyan-950'>
+                <div className='border-[#3B6978] border-2 p-2 rounded bg-[#204051]'>
                     {
                         typeof data.value === 'object' && !Array.isArray(data.value) ? (Object.entries(data.value).map(([key, value]) => (
                             <div key={key}>
-                                <strong className='text-blue-500'>{key}:</strong> {value}
+                                <strong className='text-[#049aea]'>{key}:</strong> {value}
                             </div>
                         ))) : (data.value)
                     }
