@@ -1,63 +1,70 @@
+// @ts-nocheck
+
 'use client'
-import Dagre from '@dagrejs/dagre';
+
+import ELK from 'elkjs/lib/elk.bundled.js';
 import ReactFlow, {
     Controls,
     Background,
-    applyNodeChanges,
-    applyEdgeChanges,
     useNodesState,
     useEdgesState,
     ReactFlowProvider,
     Panel,
     useReactFlow,
+    MiniMap,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
-import CustomNode from '@/app/components/CustomNode'
+import CustomNode from '../components/CustomNode'
 import useNodesAndEdges from '../store/useNodesAndEdges'; // Import your custom hook if necessary
 import { useCallback, useEffect } from 'react';
 const nodeTypes = { customNode: CustomNode };
-const g = new Dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
-
 
 
 export default function Canvas() {
     const { nodes, edges } = useNodesAndEdges()
-    const getLayoutedElements = (nodes, edges, options) => {
-        g.setGraph({ rankdir: options.direction, align: 'UR', nodesep: 150, edgesep: 150, ranksep: 300 });
-        edges.forEach((edge) => g.setEdge(edge.source, edge.target));
-        nodes.forEach((node) => g.setNode(node.id, node));
+    const elk = new ELK();
 
-        Dagre.layout(g);
-        return {
-            nodes: nodes.map((node) => {
-                const { x, y } = g.node(node.id);
-                console.log(x, y, 'adadasaXY')
-                return { ...node, position: { x, y } };
-            }),
-            edges,
+    const useLayoutedElements = () => {
+        const { getNodes, setNodes, getEdges, fitView } = useReactFlow();
+        const defaultOptions = {
+            'elk.algorithm': 'mrtree',
+            'elk.layered.spacing.nodeNodeBetweenLayers': 100,
+            'elk.spacing.nodeNode': 110,
         };
-    };
+        const getLayoutedElements = useCallback((options: any) => {
+            const layoutOptions = { ...defaultOptions, ...options };
+            const graph = {
+                id: 'root',
+                layoutOptions: layoutOptions,
+                children: getNodes(),
+                edges: getEdges(),
+            };
 
-    const LayoutFlow = ({ InitialNodes, InitialEdges }) => {
-        const { fitView } = useReactFlow();
-        const [nodes, setNodes, onNodesChange] = useNodesState(InitialNodes);
-        const [edges, setEdges, onEdgesChange] = useEdgesState(InitialEdges);
+            elk.layout(graph).then(({ children }) => {
+                // By mutating the children in-place we saves ourselves from creating a
+                // needless copy of the nodes array.
+                children.forEach((node) => {
+                    node.position = { x: node.x, y: node.y };
+                });
 
-        console.log(nodes, 'didid')
-        const onLayout = useCallback(
-            (direction) => {
-
-                const layouted = getLayoutedElements(nodes, edges, { direction });
-
-                setNodes([...layouted.nodes]);
-                setEdges([...layouted.edges]);
-
+                setNodes(children);
                 window.requestAnimationFrame(() => {
                     fitView();
                 });
-            },
-            [nodes, edges]
-        );
+            });
+        }, []);
+
+        return { getLayoutedElements };
+    };
+
+    const LayoutFlow = ({ InitialNodes, InitialEdges }: { InitialNodes: any[], InitialEdges: any[] }) => {
+        console.log(InitialEdges, InitialNodes)
+        const [nodes, , onNodesChange] = useNodesState(InitialNodes);
+        const [edges, , onEdgesChange] = useEdgesState(InitialEdges);
+        const { getLayoutedElements } = useLayoutedElements();
+        useEffect(() => {
+            getLayoutedElements({ 'elk.algorithm': 'mrtree', 'elk.direction': 'RIGHT' });
+        }, [InitialNodes, InitialEdges, getLayoutedElements]);
 
         return (
             <ReactFlow
@@ -70,14 +77,31 @@ export default function Canvas() {
             >
                 <Background />
                 <Controls />
+
                 <Panel position="top-right">
-                    <button onClick={() => onLayout('LR')}>horizontal layout </button>
-                    <br />
-                    <button onClick={() => onLayout('TB')}>vertical layout </button>
+                    <div class='space-x-1'>
+                        <button
+                            class="align-middle select-none font-sans font-bold text-center uppercase transition-all disabled:opacity-50 disabled:shadow-none disabled:pointer-events-none text-xs py-2 px-4 rounded-lg border border-white-900 text-white-900 hover:opacity-75 focus:ring focus:ring-gray-300 active:opacity-[0.85]"
+                            onClick={() =>
+                                getLayoutedElements({ 'elk.algorithm': 'mrtree', 'elk.direction': 'RIGHT' })
+                            }
+                        >
+                            horizontal layout
+                        </button>
+                        <button class="align-middle select-none font-sans font-bold text-center uppercase transition-all disabled:opacity-50 disabled:shadow-none disabled:pointer-events-none text-xs py-2 px-4 rounded-lg border border-white-900 text-white-900 hover:opacity-75 focus:ring focus:ring-gray-300 active:opacity-[0.85]"
+                            onClick={() =>
+                                getLayoutedElements({ 'elk.algorithm': 'mrtree', 'elk.direction': 'DOWN' })
+                            }
+                        >
+                            vertical layout
+                        </button>
+                    </div>
+
                 </Panel>
             </ReactFlow>
         );
     };
+
 
 
 

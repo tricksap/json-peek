@@ -1,6 +1,4 @@
-import { useCallback } from 'react';
 import { Handle, Position } from 'reactflow';
-const handleStyle = { left: 10 };
 
 interface IData {
     [key: string]: string | boolean | number;
@@ -14,7 +12,7 @@ export default function CustomNode({ data }: { data: IData }) {
                     {
                         typeof data.value === 'object' && !Array.isArray(data.value) ? (Object.entries(data.value).map(([key, value]) => (
                             <div key={key}>
-                                <strong className='text-[#049aea]'>{key}:</strong> {value}
+                                <p><strong className='text-[#049aea]'>{key}:</strong> {value as any}</p>
                             </div>
                         ))) : (data.value)
                     }

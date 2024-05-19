@@ -9,16 +9,26 @@ import useNodesAndEdges from '../store/useNodesAndEdges'; // Import your custom 
 export default function TextEditor() {
     const { addNode, nodes, resetNodes, resetEdges, addEdge } = useNodesAndEdges()
     const [first, setfirst] = useState("second")
-    const editorRef = useRef(null);
+    const debounceTimer = useRef<NodeJS.Timeout | null>(null);
     const handleEditorChange: OnChange = (value: string | undefined) => {
-        if (typeof value === 'string') {
-            const result = JSONparser(value);
-            resetNodes();
-            resetEdges();
-            result?.nodes.map(node => addNode(node));
-            result?.edges.map(edge => addEdge(edge));
-            console.log(result, 'final result');
+        if (debounceTimer.current) {
+            clearTimeout(debounceTimer.current);
         }
+        debounceTimer.current = setTimeout(() => {
+            if (typeof value === 'string') {
+                try {
+                    const result = JSONparser(value);
+                    resetNodes();
+                    resetEdges();
+                    result?.nodes.map(node => addNode(node));
+                    result?.edges.map(edge => addEdge(edge));
+                    console.log(result, 'final result');
+                } catch (error) {
+                    console.error('Invalid JSON:', error);
+                }
+            }
+        }, 1000)
+
     };
     return (
         <Editor height="100vh" width='30%'

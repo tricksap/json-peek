@@ -50,14 +50,14 @@ function JsonExtractor(Json: IJSON, IndexId: number, xCoordinate: number) {
             addEdgestoGraph(graph,rootID,parentID)
             const elements = flattenArray(Json[key])
             elements.forEach(element => {
-                const result = nestedObject(graph,element, parentID)
+                const result = nestedObject(graph,element as IJSON, parentID)
                
             });
         }
         if (typeof Json[key] === 'object' && !Array.isArray(Json[key])) {
             let parentID = addNodetoGraph(graph, key,'object')
             addEdgestoGraph(graph,rootID,parentID)
-            const result = nestedObject(graph,Json[key], parentID)
+            const result = nestedObject(graph,Json[key] as unknown as IJSON, parentID)
         }
 
     }
@@ -65,7 +65,7 @@ function JsonExtractor(Json: IJSON, IndexId: number, xCoordinate: number) {
     return graph
 }
 
-function nestedObject(graph:Graph,Json:IJSON | string | boolean | number | object, parentID:string) {
+function nestedObject(graph:Graph,Json:IJSON , parentID:string) {
 
     let rootID: any
     rootID = addNodetoGraph(graph, getNonContainerKeys(Json))
@@ -77,7 +77,7 @@ function nestedObject(graph:Graph,Json:IJSON | string | boolean | number | objec
             addEdgestoGraph(graph,rootID,newNodeId)
             const elements = flattenArray(Json[key])
             elements.forEach(element => {
-                const result = nestedObject(graph,element, newNodeId)
+                const result = nestedObject(graph,element as IJSON, newNodeId)
                 
             });
         }
@@ -93,7 +93,7 @@ function nestedObject(graph:Graph,Json:IJSON | string | boolean | number | objec
                 addEdgestoGraph(graph,rootID,newNodeId)
                 
             }
-            const result = nestedObject(graph,Json[key], newNodeId)
+            const result = nestedObject(graph,Json[key] as unknown as IJSON, newNodeId)
         }
     }
 }
@@ -106,7 +106,7 @@ function getNonContainerKeys(jsonObject: any) {
     if (typeof jsonObject !== 'object' && !Array.isArray(jsonObject)) {
         return jsonObject
     }
-    let nonContainerKeysObj = {};
+    let nonContainerKeysObj:{ [key: string]: any } = {};
 
     function traverse(obj: { [x: string]: any; hasOwnProperty: (arg0: string) => any; }) {
         for (let key in obj) {

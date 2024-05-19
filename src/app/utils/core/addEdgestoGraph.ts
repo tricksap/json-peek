@@ -4,7 +4,7 @@ import {  MarkerType } from 'reactflow';
 
 export default function addEdgestoGraph(graph: Graph, from: string, to: string){
     const newEdge =
-    { id: `${from}-${to}`, source: `${from}`, target: `${to}`,markerEnd: {
+    { id: `${from}-${to}`, source: `${from}`, target: `${to}`,  type: 'bezier',markerEnd: {
         type: MarkerType.ArrowClosed,
         animated: true,
         width: 10,
