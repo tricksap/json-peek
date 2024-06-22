@@ -6,7 +6,7 @@ interface IData {
 export default function CustomNode({ data }: { data: IData }) {
     return (
         <>
-            <div className='max-w-md break-words'>
+            <div className='max-w-xs break-words'>
                 <Handle type="target" position={Position.Left} id='left' />
                 <div className='border-[#3B6978] border-2 p-2 rounded bg-[#204051]'>
                     {
