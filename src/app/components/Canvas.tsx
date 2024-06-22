@@ -90,7 +90,7 @@ export default function Canvas() {
 
         // Calculate the initial layout on mount.
         useLayoutEffect(() => {
-            onLayout({ direction: 'RIGHT', useInitialNodes: true });
+            onLayout({ direction: 'DOWN', useInitialNodes: true });
         }, []);
 
         return (
