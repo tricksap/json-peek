@@ -90,7 +90,7 @@ export default function Canvas() {
 
         // Calculate the initial layout on mount.
         useLayoutEffect(() => {
-            onLayout({ direction: 'DOWN', useInitialNodes: true });
+            onLayout({ direction: 'RIGHT', useInitialNodes: true });
         }, []);
 
         return (
@@ -106,11 +106,11 @@ export default function Canvas() {
                 <Panel position="top-right">
                     <div className='space-x-1'>
 
-                    <button className='align-middle select-none font-sans font-bold text-center uppercase transition-all disabled:opacity-50 disabled:shadow-none disabled:pointer-events-none text-xs py-2 px-4 rounded-lg border border-white-900 text-white-900 hover:opacity-75 focus:ring focus:ring-gray-300 active:opacity-[0.85]'
-                    onClick={() => onLayout({ direction: 'DOWN' })}>vertical layout</button>
+                        <button className='align-middle select-none font-sans font-bold text-center uppercase transition-all disabled:opacity-50 disabled:shadow-none disabled:pointer-events-none text-xs py-2 px-4 rounded-lg border border-white-900 text-white-900 hover:opacity-75 focus:ring focus:ring-gray-300 active:opacity-[0.85]'
+                            onClick={() => onLayout({ direction: 'DOWN' })}>vertical layout</button>
 
-                    <button className='align-middle select-none font-sans font-bold text-center uppercase transition-all disabled:opacity-50 disabled:shadow-none disabled:pointer-events-none text-xs py-2 px-4 rounded-lg border border-white-900 text-white-900 hover:opacity-75 focus:ring focus:ring-gray-300 active:opacity-[0.85]' 
-                    onClick={() => onLayout({ direction: 'RIGHT' })}>horizontal layout</button>
+                        <button className='align-middle select-none font-sans font-bold text-center uppercase transition-all disabled:opacity-50 disabled:shadow-none disabled:pointer-events-none text-xs py-2 px-4 rounded-lg border border-white-900 text-white-900 hover:opacity-75 focus:ring focus:ring-gray-300 active:opacity-[0.85]'
+                            onClick={() => onLayout({ direction: 'RIGHT' })}>horizontal layout</button>
                     </div>
                 </Panel>
             </ReactFlow>
