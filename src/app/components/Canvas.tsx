@@ -64,7 +64,7 @@ const getLayoutedElements = (nodes, edges, options = {}) => {
 
 export default function Canvas() {
     const { nodes: initialNodes, edges: initialEdges } = useNodesAndEdges()
-
+    3
 
     function LayoutFlow() {
         const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
