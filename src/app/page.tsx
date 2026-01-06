@@ -1,29 +1,95 @@
-export default function Home() {
-  return (
-    <main className="">
-      <div className="flex md:flex-row h-screen flex-col items-center justify-center">
-        <div className="basis-1/2 h-screen flex flex-col items-center justify-center space-y-4 p-4 text-center">
-          <h1 className='text-4xl md:text-5xl font-extrabold'>Visualize JSON Data with Ease</h1>
-          <h1 className='text-md'>Explore and interact with your JSON data like never before.</h1>
-          <a href="/Editor">
-            <button type="button" className="text-gray-900 bg-white hover:bg-gray-100 border border-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-100 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center dark:focus:ring-gray-800 dark:bg-white dark:border-gray-700 dark:text-gray-900 dark:hover:bg-gray-200 me-2 mb-2">
-              Go to  Editor
-            </button>
-          </a>
+'use client';
+import { useState, useMemo } from 'react';
+import { JsonEditor } from "./components/TextEditor";
+import { JsonGraph } from "./components/JsonGraph";
+import { jsonToGraph, validateJson } from './utils/jsonToGraph';
+import { Braces } from 'lucide-react';
 
-          <div className="text-white">
-            <div className="max-w-7xl mx-auto font-[sans-serif] text-white">
-              <div className="grid xl:grid-cols-4 lg:grid-cols-3 md:grid-cols-2 gap-12 mt-16">
+export default function Page() {
+  const defaultJson = `{
+    "title": "Mystery Adventures",
+    "genre": "Mystery",
+    "seasons": 5,
+    "episodes": [
+      {
+        "season": 1,
+        "episode": 1,
+        "title": "The Beginning",
+        "air_date": "2020-01-15"
+      },
+      {
+        "season": 1,
+        "episode": 2,
+        "title": "The Mystery Deepens",
+        "air_date": "2020-01-22"
+      },
+      {
+        "season": 1,
+        "episode": 3,
+        "title": "Unveiling Secrets",
+        "air_date": "2020-01-29"
+      }
+    ],
+    "cast": [
+      {
+        "name": "Jane Smith",
+        "role": "Detective Jane"
+      },
+      {
+        "name": "John Doe",
+        "role": "Assistant John"
+      }
+    ]
+}`;
 
-              </div>
-            </div>
-          </div>
+  const [jsonValue, setJsonValue] = useState(defaultJson);
+
+  const { graphData, error } = useMemo(() => {
+    const validation = validateJson(jsonValue);
+    if (validation.valid && validation.data !== undefined) {
+      return {
+        graphData: jsonToGraph(validation.data),
+        error: undefined,
+      };
+    }
+    return {
+      graphData: { nodes: [], edges: [] },
+      error: validation.error,
+    };
+  }, [jsonValue]);
+
+  console.log(error)
+
+  return (<div className="h-screen flex flex-col bg-background">
+    
+    {/* Top Bar */}
+    <header className="flex items-center justify-between px-6 py-4 border-b border-border bg-card/30">
+      <div className="flex items-center gap-3">
+        <div className="p-2 rounded-lg bg-primary/10 animate-pulse-glow">
+          <Braces className="w-5 h-5 text-primary" />
         </div>
-        <div className="basis-[65%] h-screen flex flex-col items-center justify-center space-y-4">
-          <img src="./mockup.png" />
+        <div>
+          <h1 className="text-lg font-semibold text-foreground tracking-tight">
+            JSON Peeker
+          </h1>
+          <p className="text-xs text-muted-foreground">
+            Paste JSON on the left, see the graph on the right
+          </p>
         </div>
       </div>
-    </main>
+    </header>
 
-  );
+    {/* Main Content */}
+    <div className="flex-1 flex overflow-hidden">
+      {/* Left Panel - Editor */}
+      <div className="w-1/4 border-r border-border flex flex-col">
+        <JsonEditor value={jsonValue} onChange={setJsonValue} />
+      </div>
+
+      {/* Right Panel - Graph */}
+      <div className="w-3/4 flex flex-col">
+        <JsonGraph nodes={graphData.nodes} edges={graphData.edges} />
+      </div>
+    </div>
+  </div>);
 }

@@ -11,12 +11,18 @@
   "dependencies": {
     "@dagrejs/dagre": "^1.1.2",
     "@monaco-editor/react": "^4.6.0",
+    "@radix-ui/react-slot": "^1.2.4",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
     "elkjs": "^0.9.3",
     "lucide-react": "^0.441.0",
     "next": "14.1.4",
     "react": "^18",
     "react-dom": "^18",
     "reactflow": "^11.10.4",
+    "reaflow": "^5.4.1",
+    "tailwind-merge": "^3.4.0",
+    "tailwindcss-animate": "^1.0.7",
     "zustand": "^4.5.2"
   },
   "devDependencies": {

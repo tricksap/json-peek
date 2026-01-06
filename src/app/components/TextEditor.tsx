@@ -1,101 +1,103 @@
-'use client'
+import { useRef } from 'react';
+import Editor, { OnMount } from '@monaco-editor/react';
+import { Upload, Sparkles, FileJson } from 'lucide-react';
+import { formatJson } from '../utils/jsonToGraph';
 
-import Editor, { OnChange } from '@monaco-editor/react';
-import { useRef, useState } from 'react';
-import JSONparser from '../utils/JsonParser';
-import useNodesAndEdges from '../store/useNodesAndEdges'; // Import your custom hook if necessary
+interface JsonEditorProps {
+    value: string;
+    onChange: (value: string) => void;
+    error?: string;
+}
 
+export function JsonEditor({ value, onChange, error }: JsonEditorProps) {
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
-export default function TextEditor() {
-    const { addNode, nodes, resetNodes, resetEdges, addEdge } = useNodesAndEdges()
-    const [first, setfirst] = useState("second")
-    const debounceTimer = useRef<NodeJS.Timeout | null>(null);
-    const handleEditorChange: OnChange = (value: string | undefined) => {
-        if (debounceTimer.current) {
-            clearTimeout(debounceTimer.current);
-        }
-        debounceTimer.current = setTimeout(() => {
-            if (typeof value === 'string') {
-                try {
-                    const result = JSONparser(value);
-                    resetNodes();
-                    resetEdges();
-                    result?.nodes.map(node => addNode(node));
-                    result?.edges.map(edge => addEdge(edge));
-                    console.log(result, 'final result');
-                } catch (error) {
-                    console.error('Invalid JSON:', error);
-                }
-            }
-        }, 1000)
-
+    const handleEditorMount: OnMount = (editor) => {
+        editor.updateOptions({
+            minimap: { enabled: false },
+            scrollBeyondLastLine: false,
+            fontSize: 13,
+            lineHeight: 20,
+            padding: { top: 16, bottom: 16 },
+            renderLineHighlight: 'all',
+            cursorBlinking: 'smooth',
+            smoothScrolling: true,
+        });
     };
-    const defaultValue = {
-        "title": "Mystery Adventures",
-        "genre": "Mystery",
-        "seasons": 5,
-        "episodes": [
-            {
-                "season": 1,
-                "episode": 1,
-                "title": "The Beginning",
-                "air_date": "2020-01-15"
-            },
-            {
-                "season": 1,
-                "episode": 2,
-                "title": "The Mystery Deepens",
-                "air_date": "2020-01-22"
-            },
-            {
-                "season": 1,
-                "episode": 3,
-                "title": "Unveiling Secrets",
-                "air_date": "2020-01-29"
-            }
-        ],
-        "cast": [
-            {
-                "name": "Jane Smith",
-                "role": "Detective Jane"
-            },
-            {
-                "name": "John Doe",
-                "role": "Assistant John"
-            }
-        ]
-    }
-    function formatJSON(val: string = "{}"): string {
-        try {
-            const res = JSON.parse(val);
-            return JSON.stringify(res, null, 2);
-        } catch {
-            const errorJson = {
-                "error": `${val}`
-            }
-            return JSON.stringify(errorJson, null, 2);
-        }
-    }
-    function onMount() {
-        try {
-            const result = JSONparser(JSON.stringify(defaultValue));
-            resetNodes();
-            resetEdges();
-            result?.nodes.map(node => addNode(node));
-            result?.edges.map(edge => addEdge(edge));
-            console.log(result, 'final result');
-        } catch (error) {
-            console.error('Invalid JSON:', error);
-        }
-    }
-    return (
-        <Editor height="100vh" width='30%'
-            language='json'
-            theme="vs-dark"
-            onChange={handleEditorChange}
-            value={formatJSON(JSON.stringify(defaultValue))}
-            onMount={onMount}
-        />
 
-    )
+    const handleFormat = () => {
+        onChange(formatJson(value));
+    };
+
+    const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const content = event.target?.result as string;
+                onChange(content);
+            };
+            reader.readAsText(file);
+        }
+        // Reset input
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+        }
+    };
+
+    return (
+        <div className="flex flex-col h-full bg-editor-bg">
+            {/* Header */}
+            <div className="panel-header">
+                <div className="flex items-center gap-2">
+                    <FileJson className="w-4 h-4 text-primary" />
+                    <span className="panel-title">JSON Editor</span>
+                </div>
+                <div className="flex items-center gap-2">
+                    <button onClick={handleFormat} className="toolbar-btn-primary flex items-center gap-1.5">
+                        <Sparkles className="w-3.5 h-3.5" />
+                        Format
+                    </button>
+                    <button
+                        onClick={() => fileInputRef.current?.click()}
+                        className="toolbar-btn flex items-center gap-1.5"
+                    >
+                        <Upload className="w-3.5 h-3.5" />
+                        Load File
+                    </button>
+                    <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept=".json"
+                        onChange={handleFileUpload}
+                        className="hidden"
+                    />
+                </div>
+            </div>
+
+            {/* Editor */}
+            <div className="flex-1 overflow-hidden">
+                <Editor
+                    height="100%"
+                    defaultLanguage="json"
+                    value={value}
+                    onChange={(v) => onChange(v || '')}
+                    onMount={handleEditorMount}
+                    theme="vs-dark"
+                    options={{
+                        automaticLayout: true,
+                        formatOnPaste: true,
+                        tabSize: 2,
+                    }}
+                />
+            </div>
+
+            {/* Error Display */}
+            {error && (
+                <div className="json-error animate-fade-in">
+                    <span className="font-semibold">Parse Error:</span> {error}
+                </div>
+            )}
+        </div>
+    );
 }
