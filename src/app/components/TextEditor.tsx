@@ -48,11 +48,7 @@ export function JsonEditor({ value, onChange, error }: JsonEditorProps) {
     return (
         <div className="flex flex-col h-full bg-editor-bg">
             {/* Header */}
-            <div className="panel-header">
-                <div className="flex items-center gap-2">
-                    <FileJson className="w-4 h-4 text-primary" />
-                    <span className="panel-title">JSON Editor</span>
-                </div>
+            <div className="panel-header ">
                 <div className="flex items-center gap-2">
                     <button onClick={handleFormat} className="toolbar-btn-primary flex items-center gap-1.5">
                         <Sparkles className="w-3.5 h-3.5" />

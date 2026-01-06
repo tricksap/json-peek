@@ -58,10 +58,8 @@ export default function Page() {
     };
   }, [jsonValue]);
 
-  console.log(error)
-
   return (<div className="h-screen flex flex-col bg-background">
-    
+
     {/* Top Bar */}
     <header className="flex items-center justify-between px-6 py-4 border-b border-border bg-card/30">
       <div className="flex items-center gap-3">
@@ -72,9 +70,6 @@ export default function Page() {
           <h1 className="text-lg font-semibold text-foreground tracking-tight">
             JSON Peeker
           </h1>
-          <p className="text-xs text-muted-foreground">
-            Paste JSON on the left, see the graph on the right
-          </p>
         </div>
       </div>
     </header>
@@ -83,7 +78,7 @@ export default function Page() {
     <div className="flex-1 flex overflow-hidden">
       {/* Left Panel - Editor */}
       <div className="w-1/4 border-r border-border flex flex-col">
-        <JsonEditor value={jsonValue} onChange={setJsonValue} />
+        <JsonEditor value={jsonValue} onChange={setJsonValue} error={error} />
       </div>
 
       {/* Right Panel - Graph */}

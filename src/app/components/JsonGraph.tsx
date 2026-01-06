@@ -5,20 +5,22 @@ import ReactFlow, {
     MiniMap,
     useNodesState,
     useEdgesState,
-    Panel,
     BackgroundVariant,
     ReactFlowProvider,
     useReactFlow,
     Node,
-    Position
+    Position,
+    NodeMouseHandler
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { JsonNode } from '../utils/jsonToGraph';
-import CustomNode from './CustomNode';
+import { CustomNode } from './CustomNode';
 import ELK from 'elkjs/lib/elk.bundled.js';
 import type {
     LayoutOptions,
 } from 'elkjs';
+import { NodeDialog } from './NodeDialog';
+import { useNodeDialogStore } from '../store/useNodeDialogStore';
 
 interface JsonGraphProps {
     nodes: JsonNode[];
@@ -79,8 +81,9 @@ const getLayoutedElements = async (
     }
 };
 
-
 export function JsonGraph({ nodes: initialNodes, edges: initialEdges }: JsonGraphProps) {
+    const { setOpen, setSelectedNode } = useNodeDialogStore();
+
     function LayoutFlow() {
         const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
         const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
@@ -102,6 +105,11 @@ export function JsonGraph({ nodes: initialNodes, edges: initialEdges }: JsonGrap
             [nodes, edges]
         );
 
+        const onNodeClick: NodeMouseHandler = (_, node) => {
+            setSelectedNode(node)
+            setOpen(true)
+        }
+
         // Calculate the initial layout on mount.
         useLayoutEffect(() => {
             onLayout({ direction: 'RIGHT', useInitialNodes: true });
@@ -121,6 +129,7 @@ export function JsonGraph({ nodes: initialNodes, edges: initialEdges }: JsonGrap
                     minZoom={0.1}
                     maxZoom={2}
                     proOptions={{ hideAttribution: true }}
+                    onNodeClick={onNodeClick}
                 >
                     <Background
                         gap={20}
@@ -155,9 +164,11 @@ export function JsonGraph({ nodes: initialNodes, edges: initialEdges }: JsonGrap
         );
     }
 
-    return (
+    return (<>
         <ReactFlowProvider>
             <LayoutFlow />
         </ReactFlowProvider>
+        <NodeDialog />
+    </>
     );
 }

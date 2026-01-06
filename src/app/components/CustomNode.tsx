@@ -8,7 +8,7 @@ interface CustomNodeData {
     fullPath: string;
 }
 
-function CustomNode({ data }: NodeProps<CustomNodeData>) {
+export function CustomNode({ data }: NodeProps<CustomNodeData>) {
     const getNodeStyle = (type: string) => {
         switch (type) {
             case 'root':
@@ -104,5 +104,3 @@ function CustomNode({ data }: NodeProps<CustomNodeData>) {
         </div>
     );
 }
-
-export default memo(CustomNode);
