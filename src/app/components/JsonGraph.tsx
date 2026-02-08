@@ -90,19 +90,22 @@ function LayoutFlow({ initialNodes, initialEdges }: { initialNodes: any, initial
         setOpen(true);
     }, [setSelectedNode, setOpen]);
 
-    const onLayout = () => {
-        getLayoutedElements(nodes, edges, elkOptions)
+
+    // Run layout when initialNodes/initialEdges change
+    useLayoutEffect(() => {
+        setLayoutDone(false);
+
+        getLayoutedElements(initialNodes, initialEdges, elkOptions)
             .then(({ nodes: layoutedNodes }) => {
                 setNodes(layoutedNodes);
+                setEdges(initialEdges);
+
                 setLayoutDone(true);
             });
-    };
-
-    useLayoutEffect(() => {
-        onLayout();
-    }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [initialNodes, initialEdges, setNodes, setEdges]);
 
     useEffect(() => {
+        console.log('asd1`223weds')
         fitView();
     }, [layoutDone, fitView]);
 
