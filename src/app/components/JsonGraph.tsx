@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { useCallback, useLayoutEffect } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useState } from 'react';
 import ReactFlow, {
     Background,
     Controls,
@@ -42,134 +42,125 @@ const elkOptions = {
     'elk.algorithm': 'mrtree',
     'elk.layered.spacing.nodeNodeBetweenLayers': 100,
     'elk.spacing.nodeNode': 15,
+    'elk.direction': 'RIGHT'
 };
 
 const getLayoutedElements = async (
     nodes: Node[],
     edges: Position[],
-    options = {} as LayoutOptions) => {
-    const isHorizontal = options?.['elk.direction'] === 'RIGHT';
+    options: LayoutOptions) => {
     const graph = {
         id: 'root',
         layoutOptions: options,
         children: nodes.map((node) => ({
             ...node,
-            // Adjust the target and source handle positions based on the layout
-            // direction.
-            targetPosition: isHorizontal ? 'left' : 'top',
-            sourcePosition: isHorizontal ? 'right' : 'bottom',
 
-            // Conditionally include width and height if useInitialNodes is true.
-            ...(options.useInitialNodes ? { width: 300, height: 50 } : {})
+            targetPosition: 'left',
+            sourcePosition: 'right',
+
+            width: 300, height: 50
         })),
         edges: edges,
     };
-    try {
-        const layoutedGraph = await elk
-            .layout(graph as any);
-        return ({
-            nodes: layoutedGraph.children?.map((node_1) => ({
-                ...node_1,
-                // React Flow expects a position property on the node instead of `x`
-                // and `y` fields.
-                position: { x: node_1.x, y: node_1.y },
-            })),
 
-            edges: layoutedGraph.edges,
+    try {
+        const layoutedGraph = await elk.layout(graph);
+
+        return ({
+            nodes: layoutedGraph.children?.map((node) => ({
+                ...node,
+
+                position: { x: node.x, y: node.y },
+            })),
         });
     } catch (message) {
         return console.error(message);
     }
 };
 
-export function JsonGraph({ nodes: initialNodes, edges: initialEdges }: JsonGraphProps) {
+function LayoutFlow({ initialNodes, initialEdges }: { initialNodes: any, initialEdges: any }) {
+    const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
+    const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+    const { fitView } = useReactFlow();
     const { setOpen, setSelectedNode } = useNodeDialogStore();
+    const [layoutDone, setLayoutDone] = useState(false);
 
-    function LayoutFlow() {
-        const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-        const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
-        const { fitView } = useReactFlow();
+    const handleNodeClick: NodeMouseHandler = useCallback((_, node) => {
+        setSelectedNode(node);
+        setOpen(true);
+    }, [setSelectedNode, setOpen]);
 
-        const onLayout = useCallback(
-            ({ direction, useInitialNodes = false }: { direction: string; useInitialNodes?: boolean }) => {
-                const opts = { 'elk.direction': direction, useInitialNodes, ...elkOptions };
-                const ns = useInitialNodes ? initialNodes : nodes;
-                const es = useInitialNodes ? initialEdges : edges;
+    const onLayout = () => {
+        getLayoutedElements(nodes, edges, elkOptions)
+            .then(({ nodes: layoutedNodes }) => {
+                setNodes(layoutedNodes);
+                setLayoutDone(true);
+            });
+    };
 
-                getLayoutedElements(ns, es as any, opts as any).then(({ nodes: layoutedNodes, edges: layoutedEdges }) => {
-                    setNodes(layoutedNodes);
-                    setEdges(layoutedEdges);
+    useLayoutEffect(() => {
+        onLayout();
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-                    window.requestAnimationFrame(() => fitView());
-                });
-            },
-            [nodes, edges]
-        );
+    useEffect(() => {
+        fitView();
+    }, [layoutDone, fitView]);
 
-        const onNodeClick: NodeMouseHandler = (_, node) => {
-            setSelectedNode(node)
-            setOpen(true)
-        }
+    return (
+        <div className="h-full bg-[#1A1A1A] dark:bg-[#1A1A1A]">
+            <ReactFlow
+                nodes={nodes}
+                edges={edges}
+                nodeTypes={nodeTypes}
+                onNodesChange={onNodesChange}
+                onEdgesChange={onEdgesChange}
+                nodesDraggable={false}
+                nodesConnectable={false}
+                minZoom={0.1}
+                maxZoom={2}
+                proOptions={{ hideAttribution: true }}
+                onNodeClick={handleNodeClick}
+            >
+                <Background
+                    gap={20}
+                    variant={BackgroundVariant.Dots}
+                    size={1}
+                />
+                <Controls
+                    className="bg-[#2A2A2A] border-[#444]"
+                    position='top-right'
+                    showInteractive={false} />
 
-        // Calculate the initial layout on mount.
-        useLayoutEffect(() => {
-            onLayout({ direction: 'RIGHT', useInitialNodes: true });
-        }, []);
+                <MiniMap
+                    nodeColor={(node) => {
+                        const type = node.data?.type || 'primitive';
+                        const colors: Record<string, string> = nodeColors
+                        return colors[type] || '#666';
+                    }}
+                    className="bg-[#2A2A2A] border-[#444]"
+                    maskColor="rgba(0, 0, 0, 0.7)"
+                />
 
-        return (
-            <div className="h-full bg-[#1A1A1A] dark:bg-[#1A1A1A]">
-                <ReactFlow
-                    nodes={nodes}
-                    edges={edges}
-                    nodeTypes={nodeTypes}
-                    onNodesChange={onNodesChange}
-                    onEdgesChange={onEdgesChange}
-                    nodesDraggable={false}
-                    nodesConnectable={false}
-                    fitView
-                    minZoom={0.1}
-                    maxZoom={2}
-                    proOptions={{ hideAttribution: true }}
-                    onNodeClick={onNodeClick}
-                >
-                    <Background
-                        gap={20}
-                        variant={BackgroundVariant.Dots}
-                        size={1}
-                    />
-                    <Controls
-                        className="bg-[#2A2A2A] border-[#444]"
-                        position='top-right'
-                        showInteractive={false} />
+                <div className="absolute bottom-4 left-4 flex flex-wrap gap-2 text-[10px] font-medium">
+                    {Object.entries(nodeColors).map(([type, color]) => (
+                        <div key={type} className="flex items-center gap-1.5 px-2 py-1 rounded bg-card/80 backdrop-blur-sm border border-border">
+                            <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: color }} />
+                            <span className="capitalize text-muted-foreground">{type}</span>
+                        </div>
+                    ))}
+                </div>
+            </ReactFlow>
+        </div>
+    );
+}
 
-                    <MiniMap
-                        nodeColor={(node) => {
-                            const type = node.data?.type || 'primitive';
-                            const colors: Record<string, string> = nodeColors
-                            return colors[type] || '#666';
-                        }}
-                        className="bg-[#2A2A2A] border-[#444]"
-                        maskColor="rgba(0, 0, 0, 0.7)"
-                    />
-
-                    <div className="absolute bottom-4 left-4 flex flex-wrap gap-2 text-[10px] font-medium">
-                        {Object.entries(nodeColors).map(([type, color]) => (
-                            <div key={type} className="flex items-center gap-1.5 px-2 py-1 rounded bg-card/80 backdrop-blur-sm border border-border">
-                                <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: color }} />
-                                <span className="capitalize text-muted-foreground">{type}</span>
-                            </div>
-                        ))}
-                    </div>
-                </ReactFlow>
-            </div>
-        );
-    }
-
-    return (<>
-        <ReactFlowProvider>
-            <LayoutFlow />
-        </ReactFlowProvider>
-        <NodeDialog />
-    </>
+export function JsonGraph({ nodes: initialNodes, edges: initialEdges }: JsonGraphProps) {
+    return (
+        <>
+            <ReactFlowProvider>
+                <LayoutFlow initialNodes={initialNodes} initialEdges={initialEdges} />
+            </ReactFlowProvider>
+            <NodeDialog />;
+        </>
     );
 }
